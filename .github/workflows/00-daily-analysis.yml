@@ -12,7 +12,7 @@ on:
       mode:
         description: '运行模式'
         required: true
-        default: 'market-only'
+        default: 'full'
         type: choice
         options:
           - full          # 完整分析（股票+大盘）
@@ -418,7 +418,14 @@ jobs:
             echo "$LITELLM_CONFIG_YAML" > "$LITELLM_CONFIG"
             echo "✅ LITELLM 配置文件已写入: $LITELLM_CONFIG"
           fi
-
+          
+          # 定时触发自动判断:非18点时段仅跑大盘复盘
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%H)" != "10" ]; then
+            MODE="market-only"
+          else
+            MODE="${{ github.event.inputs.mode || 'full' }}"
+          fi
+          
           # 判断运行模式
           MODE="${{ github.event.inputs.mode || 'full' }}"
           
